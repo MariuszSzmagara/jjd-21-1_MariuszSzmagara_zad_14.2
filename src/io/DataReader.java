@@ -3,19 +3,16 @@ package io;
 import model.Type;
 import model.Vehicle;
 
-import java.io.EOFException;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.util.Queue;
 import java.util.Scanner;
 
 public class DataReader {
-    Scanner scanner = new Scanner(System.in);
+    private final Scanner scanner = new Scanner(System.in);
     private static final String FILE_NAME = "workshop_queue.obj";
-    ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(FILE_NAME));
+//    private final ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(FILE_NAME));
 
-    public DataReader() throws IOException {
+    public DataReader() {
     }
 
     public Vehicle readAndCreateVehicle() {
@@ -63,13 +60,21 @@ public class DataReader {
         scanner.close();
     }
 
-    public void readVehiclesFromFile(Queue<Vehicle> vehicles) throws IOException, ClassNotFoundException {
-        while (true) {
-            try {
+    public void readVehiclesFromFile(Queue<Vehicle> vehicles) {
+        Vehicle vehicle = null;
+        boolean keepReading = true;
+        try (
+                FileInputStream fileInputStream = new FileInputStream(FILE_NAME);
+                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+                ) {
+            while (keepReading) {
                 vehicles.add((Vehicle) objectInputStream.readObject());
-            } catch (EOFException exception) {
-                break;
             }
+        } catch (EOFException exception) {
+            keepReading = false;
+        } catch (IOException | ClassNotFoundException exception) {
+            exception.printStackTrace();
         }
+
     }
 }
